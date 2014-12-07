@@ -11,16 +11,16 @@ description = readme_lines[3].strip()
 long_description = ''.join(readme_lines[4:])
 
 setup(
-    name = "crfmg_utils",
-    packages = ["crmfg_utils"],
-    description = description,
-    long_description = long_description,
-    version = VERSION,
-    license = 'Apache 2.0',
-    author = 'Fahrzin Hemmati',
-    author_email = 'fahhem@gmail.com',
-    url = 'https://github.com/crmfg/crmfg-utils',
-    classifiers = [
+    name="crmfg_utils",
+    packages=["crmfg_utils"],
+    description=description,
+    long_description=long_description,
+    version=VERSION,
+    license='Apache 2.0',
+    author='Fahrzin Hemmati',
+    author_email='fahhem@gmail.com',
+    url='https://github.com/crmfg/crmfg-utils',
+    classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
