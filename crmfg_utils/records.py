@@ -107,7 +107,7 @@ class RecordMeta(type):
                 provided = set(base.required_attributes) & set(attrs)
                 for attr in provided:
                     attrs['required_attributes'].remove(attr)
-                    attrs['optional_attributes'][attr] = attrs[attr]
+                    attrs['optional_attributes'][attr] = attrs.pop(attr)
 
         attrs['__slots__'] = (tuple(attrs['required_attributes']) +
                               tuple(attrs['optional_attributes'].keys()))
