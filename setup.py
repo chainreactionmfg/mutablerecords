@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 MAJOR = 0
 MINOR = 1
 MICRO = 0
