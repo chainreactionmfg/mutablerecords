@@ -21,6 +21,7 @@ Example:
     # Second requires attr1, attr2, and second1.
     baz = Second(1, 2, 3, second2=4)
 """
+import copy
 import itertools
 
 
@@ -76,16 +77,27 @@ class RecordClass(object):
             tuple(hash(getattr(self, attr)) for attr in self.__slots__))
 
     def __eq__(self, other):
-        return self is other or self.isequal_fields(other, self.__slots__)
+        return (
+            self is other
+            or type(self) is type(other)
+            and self.isequal_fields(other, self.__slots__))
 
     def isequal_fields(self, other, fields):
         return all(getattr(self, attr) == getattr(other, attr)
                    for attr in fields)
 
+    def __copy__(self):
+        return type(self)(**{attr: getattr(self, attr)
+                             for attr in self.__slots__})
+
+    def __deepcopy__(self, memo):
+        return type(self)(**{attr: copy.deepcopy(getattr(self, attr), memo)
+                             for attr in self.__slots__})
+
 
 class RecordMeta(type):
 
-    def __new__(self, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):
         attrs['required_attributes'] = attrs.get('required_attributes', ())
         attrs['optional_attributes'] = attrs.get('optional_attributes', {})
         for base in bases:
@@ -111,11 +123,17 @@ class RecordMeta(type):
 
         attrs['__slots__'] = (tuple(attrs['required_attributes']) +
                               tuple(attrs['optional_attributes'].keys()))
-        return super(RecordMeta, self).__new__(self, name, bases, attrs)
+        return super(RecordMeta, cls).__new__(cls, name, bases, attrs)
 
-    def __str__(self):
-        return '<Record: %s>' % self.__name__
+    def __str__(cls):
+        return '<Record: %s>' % cls.__name__
     __repr__ = __str__
+
+    def __eq__(cls, other):
+        return (
+            cls is other
+            or cls.required_attributes == other.required_attributes
+            and cls.optional_attributes == other.optional_attributes)
 
 
 def Record(cls_name, required_attributes=(), optional_attributes={}):
