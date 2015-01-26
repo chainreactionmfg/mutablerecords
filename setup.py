@@ -1,14 +1,20 @@
 from setuptools import setup
 MAJOR = 0
 MINOR = 1
-MICRO = 2
+MICRO = 3
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 with open('README.md') as readme:
     readme_lines = readme.readlines()
 
 description = readme_lines[3].strip()
-long_description = ''.join(readme_lines[4:])
+try:
+    import pandoc
+    doc = pandoc.Document()
+    doc.markdown = ''.join(readme_lines)
+    long_description = doc.rst.replace(r'\_\_', '__')
+except ImportError:
+    long_description = ''.join(readme_lines[4:])
 
 setup(
     name="crmfg_utils",

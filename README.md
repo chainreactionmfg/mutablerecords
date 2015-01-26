@@ -7,15 +7,15 @@ records.Record
 --------------
 
 This is similar to collections.namedtuple, except it supports optional
-attributes and mutability. A class definition is generated (with \_\_slots\_\_,
-\_\_str\_\_ and other niceties), and can be used to instantiate new records of
+attributes and mutability. A class definition is generated (with \__slots__,
+\__str__ and other niceties), and can be used to instantiate new records of
 that type. The record can also be subclassed to add new attributes or to add
 methods to that data.
 
-Sometimes, a Record definition is used to replace a simple \_\_init\_\_ method
+Sometimes, a Record definition is used to replace a simple \__init__ method
 that only takes N arguments and sets them as instance variables. These
-\_\_init\_\_ methods are tedious to write and, even if you do, you still have
-to write str, hash, eq functions, and set \_\_slots\_\_ to be fully correct, but
+\__init__ methods are tedious to write and, even if you do, you still have
+to write str, hash, eq functions, and set \__slots__ to be fully correct, but
 who has the time for that? With records, you get all of that in a single
 declaration, which you can even inline as your base class.
 
