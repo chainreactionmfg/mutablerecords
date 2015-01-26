@@ -143,6 +143,8 @@ class RecordMeta(type):
     __repr__ = __str__
 
     def __eq__(cls, other):
+        if not isinstance(other, RecordClass):
+            return False
         return (
             cls is other
             or cls.required_attributes == other.required_attributes
