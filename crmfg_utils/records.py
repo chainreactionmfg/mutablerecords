@@ -72,10 +72,6 @@ class RecordClass(object):
         return '%s(%s)' % (type(self).__name__, ', '.join(attrs))
     __repr__ = __str__
 
-    def __hash__(self):
-        return hash(
-            tuple(hash(getattr(self, attr)) for attr in self.__slots__))
-
     def __eq__(self, other):
         return (
             self is other
@@ -93,6 +89,18 @@ class RecordClass(object):
     def __deepcopy__(self, memo):
         return type(self)(**{attr: copy.deepcopy(getattr(self, attr), memo)
                              for attr in self.__slots__})
+
+
+class ImmutableRecordClass(RecordClass):
+    """Immutable version of RecordClass.
+
+    Use this when the record is considered immutable. Immutability is not
+    enforced, but is now expected due to the hash implementation. Do not use if
+    the record or any of its fields' values will ever be modified.
+    """
+    def __hash__(self):
+        return hash(
+            tuple(hash(getattr(self, attr)) for attr in self.__slots__))
 
 
 class RecordMeta(type):
@@ -135,8 +143,19 @@ class RecordMeta(type):
             or cls.required_attributes == other.required_attributes
             and cls.optional_attributes == other.optional_attributes)
 
+    def __hash__(cls):
+        return hash(
+            (cls.required_attributes,
+             frozenset(cls.optional_attributes.items())))
+
 
 def Record(cls_name, required_attributes=(), optional_attributes={}):
     attrs = {'required_attributes': tuple(required_attributes),
              'optional_attributes': dict(optional_attributes)}
     return RecordMeta(cls_name, (RecordClass,), attrs)
+
+
+def ImmutableRecord(cls_name, required_attributes=(), optional_attributes={}):
+    attrs = {'required_attributes': tuple(required_attributes),
+             'optional_attributes': dict(optional_attributes)}
+    return RecordMeta(cls_name, (ImmutableRecordClass,), attrs)
