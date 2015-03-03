@@ -1,20 +1,20 @@
 from setuptools import setup
 MAJOR = 0
 MINOR = 2
-MICRO = 1
+MICRO = 2
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 with open('README.md') as readme:
     readme_lines = readme.readlines()
 
-description = readme_lines[3].strip()
+description = readme_lines[2].strip()
 try:
     import pandoc
     doc = pandoc.Document()
     doc.markdown = ''.join(readme_lines)
     long_description = doc.rst.replace(r'\_\_', '__')
 except ImportError:
-    long_description = ''.join(readme_lines[4:])
+    long_description = ''.join(readme_lines)
 
 setup(
     name="mutablerecords",
