@@ -126,7 +126,9 @@ class RecordMeta(type):
                 # default with the given value.
                 provided = set(base.required_attributes) & set(attrs)
                 for attr in provided:
-                    attrs['required_attributes'].remove(attr)
+                    attrs['required_attributes'] = tuple(
+                        att for att in attrs['required_attributes']
+                        if att != attr)
                     attrs['optional_attributes'][attr] = attrs.pop(attr)
                 # Allow the class to override optional attribute defaults
                 # as well.
