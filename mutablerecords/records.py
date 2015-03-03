@@ -32,30 +32,31 @@ class RecordClass(object):
 
     def __init__(self, *args, **kwargs):
         # First, check for the maximum number of arguments.
-        if len(args) + len(kwargs.keys()) < len(self.required_attributes):
+        required_attributes = type(self).required_attributes
+        if len(args) + len(kwargs.keys()) < len(required_attributes):
             raise ValueError(
                 'Invalid arguments', type(self), args, kwargs, self.__slots__)
         # Second, check if there are any overlapping arguments.
         conflicts = (frozenset(kwargs.keys()) &
-                     frozenset(self.required_attributes[:len(args)]))
+                     frozenset(required_attributes[:len(args)]))
         if conflicts:
             raise TypeError(
                 'Keyword arguments conflict with positional arguments: %s',
                 conflicts)
         # Third, check all required attributes are provided.
-        required_kwargs = set(kwargs.keys()) & set(self.required_attributes)
+        required_kwargs = set(kwargs.keys()) & set(required_attributes)
         num_provided = len(args) + len(required_kwargs)
-        if num_provided != len(self.required_attributes):
+        if num_provided != len(required_attributes):
             raise TypeError(
                 '__init__ takes exactly %d arguments but %d were given: %s' % (
-                    len(self.required_attributes), num_provided,
-                    self.required_attributes))
+                    len(required_attributes), num_provided,
+                    required_attributes))
 
         for slot, arg in itertools.chain(
-                zip(self.required_attributes, args), kwargs.items()):
+                zip(type(self).required_attributes, args), kwargs.items()):
             setattr(self, slot, arg)
         # Set defaults.
-        for attr, value in self.optional_attributes.items():
+        for attr, value in type(self).optional_attributes.items():
             if attr not in kwargs:
                 if callable(value):
                     value = value()
@@ -63,7 +64,8 @@ class RecordClass(object):
 
     def __str__(self):
         return self._str(itertools.chain(
-            self.required_attributes, self.optional_attributes.keys()))
+            type(self).required_attributes,
+            type(self).optional_attributes.keys()))
 
     def _str(self, str_attrs):
         attrs = []
@@ -91,12 +93,13 @@ class RecordClass(object):
                              for attr in self.__slots__})
 
 
-class ImmutableRecordClass(RecordClass):
-    """Immutable version of RecordClass.
+class HashableRecordClass(RecordClass):
+    """Hashable version of RecordClass.
 
-    Use this when the record is considered immutable. Immutability is not
-    enforced, but is now expected due to the hash implementation. Do not use if
-    the record or any of its fields' values will ever be modified.
+    Use this when the record is considered immutable enough to be hashable.
+    Immutability is not enforced, but is recommended.
+
+    Do not use if the record or any of its fields' values will ever be modified.
     """
     def __hash__(self):
         return hash(
@@ -164,7 +167,7 @@ def Record(cls_name, required_attributes=(), optional_attributes={}):
     return RecordMeta(cls_name, (RecordClass,), attrs)
 
 
-def ImmutableRecord(cls_name, required_attributes=(), optional_attributes={}):
+def HashableRecord(cls_name, required_attributes=(), optional_attributes={}):
     attrs = {'required_attributes': tuple(required_attributes),
              'optional_attributes': dict(optional_attributes)}
-    return RecordMeta(cls_name, (ImmutableRecordClass,), attrs)
+    return RecordMeta(cls_name, (HashableRecordClass,), attrs)

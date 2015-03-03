@@ -1,7 +1,7 @@
 from setuptools import setup
 MAJOR = 0
-MINOR = 1
-MICRO = 3
+MINOR = 2
+MICRO = 0
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 with open('README.md') as readme:
@@ -17,17 +17,17 @@ except ImportError:
     long_description = ''.join(readme_lines[4:])
 
 setup(
-    name="crmfg_utils",
-    packages=["crmfg_utils"],
+    name="mutablerecords",
+    packages=["mutablerecords"],
     description=description,
     long_description=long_description,
     version=VERSION,
     license='Apache 2.0',
     author='Fahrzin Hemmati',
-    author_email='fahhem@gmail.com',
-    url='https://github.com/crmfg/crmfg-utils',
+    author_email='fahhem@chainreactionmfg.com',
+    url='https://github.com/chainreactionmfg/mutablerecords',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',

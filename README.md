@@ -1,10 +1,8 @@
-crmfg-utils
-===========
+# mutablerecords
 
-Utilities written for chainreactionmfg repositories
+Mutable records
 
-records.Record
---------------
+## mutablerecords.Record
 
 This is similar to collections.namedtuple, except it supports optional
 attributes and mutability. A class definition is generated (with \__slots__,
@@ -53,3 +51,8 @@ opt2 = OptionalMaker(2, required=3)
 # This time, opt2 has required set, too, which is still an attribute.
 # str(opt2) --> 'OptionalMaker(other=2, required=3)'
 ```
+
+## mutablerecords.HashableRecord
+
+All this does is add a __hash__ implementation for when the record will be
+hashed, such as when a key in a `dict` or in a `set`.
