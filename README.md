@@ -54,5 +54,5 @@ opt2 = OptionalMaker(2, required=3)
 
 ## mutablerecords.HashableRecord
 
-All this does is add a __hash__ implementation for when the record will be
+All this does is add a \__hash__ implementation for when the record will be
 hashed, such as when a key in a `dict` or in a `set`.
