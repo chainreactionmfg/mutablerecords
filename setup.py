@@ -1,7 +1,7 @@
 from setuptools import setup
 MAJOR = 0
 MINOR = 2
-MICRO = 3
+MICRO = 4
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 with open('README.md') as readme:
@@ -10,6 +10,7 @@ with open('README.md') as readme:
 description = readme_lines[2].strip()
 try:
     import pandoc
+    pandoc.core.PANDOC_PATH = '/usr/bin/pandoc'
     doc = pandoc.Document()
     doc.markdown = ''.join(readme_lines)
     long_description = doc.rst.replace(r'\_\_', '__')
