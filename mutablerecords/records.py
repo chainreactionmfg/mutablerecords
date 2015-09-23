@@ -63,9 +63,7 @@ class RecordClass(object):
                 setattr(self, attr, value)
 
     def __str__(self):
-        return self._str(itertools.chain(
-            type(self).required_attributes,
-            type(self).optional_attributes.keys()))
+        return self._str(type(self).all_attribute_names)
 
     def _str(self, str_attrs):
         attrs = []
@@ -159,6 +157,12 @@ class RecordMeta(type):
         return hash(
             (cls.required_attributes,
              frozenset(cls.optional_attributes.items())))
+
+    @property
+    def all_attribute_names(cls):
+        return itertools.chain(
+            cls.required_attributes,
+            cls.optional_attributes.keys())
 
 
 def Record(cls_name, required_attributes=(), optional_attributes={}):
