@@ -1,7 +1,7 @@
 from setuptools import setup
 MAJOR = 0
 MINOR = 2
-MICRO = 5
+MICRO = 6
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 with open('README.md') as readme:
