@@ -54,13 +54,13 @@ class RecordClass(object):
 
         for slot, arg in itertools.chain(
                 zip(type(self).required_attributes, args), kwargs.items()):
-            setattr(self, slot, arg)
+            object.__setattr__(self, slot, arg)
         # Set defaults.
         for attr, value in type(self).optional_attributes.items():
             if attr not in kwargs:
                 if callable(value):
                     value = value()
-                setattr(self, attr, value)
+                object.__setattr__(self, attr, value)
 
     def __str__(self):
         return self._str(type(self).all_attribute_names)
