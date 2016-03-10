@@ -76,9 +76,9 @@ class RecordClass(object):
         return (
             self is other
             or type(self) is type(other)
-            and self.isequal_fields(other, self.__slots__))
+            and self._isequal_fields(other, self.__slots__))
 
-    def isequal_fields(self, other, fields):
+    def _isequal_fields(self, other, fields):
         return all(getattr(self, attr) == getattr(other, attr)
                    for attr in fields)
 
