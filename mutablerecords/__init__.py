@@ -1,1 +1,1 @@
-from mutablerecords.records import Record, HashableRecord
+from mutablerecords.records import Record, HashableRecord, CopyRecord

@@ -175,3 +175,19 @@ def HashableRecord(cls_name, required_attributes=(), optional_attributes={}):
     attrs = {'required_attributes': tuple(required_attributes),
              'optional_attributes': dict(optional_attributes)}
     return RecordMeta(cls_name, (HashableRecordClass,), attrs)
+
+
+def CopyRecord(record):
+    """Copies a record and each of its fields, like a 1-level deepcopy."""
+
+    fields = {}
+    for field in record.__slots__:
+        value = getattr(record, field)
+        if isinstance(value, RecordClass):
+            # Recurse for records.
+            new_value = CopyRecord(value)
+        else:
+            new_value = copy.copy(value)
+        fields[field] = new_value
+
+    return type(record)(**fields)
