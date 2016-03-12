@@ -56,3 +56,10 @@ opt2 = OptionalMaker(2, required=3)
 
 All this does is add a \__hash__ implementation for when the record will be
 hashed, such as when a key in a `dict` or in a `set`.
+
+## mutablerecords.CopyRecord
+
+This will copy a record and all of its fields. If a field is set to a Record
+instance, then it is also copied using `CopyRecord`. A future feature may also
+check for collections of Records, such as tuples or lists of instances, and
+recurse into those as well.
