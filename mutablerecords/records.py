@@ -25,6 +25,23 @@ import copy
 import itertools
 
 
+def _UnReduceRecord(name, bases, attribute_names, required_attribute_values):
+  """Re-construct a Record instance as serialized via RecordClass.__reduce__().
+
+  This enables pickling and unpickling of Record instances.  Required
+  attribute values are passed in directly here, because they are needed at
+  construction time of the Record.  Optional attributes' values are saved via
+  RecordClass.__getstate__() and restored via RecordClass.__setstate__() by
+  the pickle module.
+
+  Note that pickling and unpickling a Record results in a Record with a newly
+  created type.  This new type will compare equal to the type of the original
+  Record, but will not pass 'is' checks.  The new Record and the original will
+  also pass equality checks, but not 'is' checks (obviously).
+  """
+  return RecordMeta(name, bases, attribute_names)(*required_attribute_values)
+
+
 class RecordClass(object):
     __slots__ = ()
     required_attributes = ()
@@ -75,7 +92,7 @@ class RecordClass(object):
     def __eq__(self, other):
         return (
             self is other
-            or type(self) is type(other)
+            or type(self) == type(other)
             and self._isequal_fields(other, self.__slots__))
 
     def _isequal_fields(self, other, fields):
@@ -89,6 +106,34 @@ class RecordClass(object):
     def __deepcopy__(self, memo):
         return type(self)(**{attr: copy.deepcopy(getattr(self, attr), memo)
                              for attr in self.__slots__})
+
+    def __getstate__(self):
+        """Get the current state of all optional attributes."""
+        return {attr: getattr(self, attr) for
+                attr in type(self).optional_attributes}
+
+    def __setstate__(self, state):
+        """Set the state of optional attributes."""
+        for attr, value in state.iteritems():
+          setattr(self, attr, value)
+
+    def __reduce__(self):
+        """Provide the ability to pickle Records.
+
+        See _UnReduceRecord for details of what these args are, but basically
+        pass all the information needed to reconstruct this Record.  Also see
+        Python docs on __reduce__() for the calling semantics of this method
+        and the format of the return value.
+        """
+        return (_UnReduceRecord, (
+          type(self).__name__, type(self).__bases__,
+          {
+            'required_attributes': type(self).required_attributes,
+            'optional_attributes': type(self).optional_attributes,
+          },
+          tuple(getattr(self, attr) for
+                attr in type(self).required_attributes)),
+          self.__getstate__())
 
 
 class HashableRecordClass(RecordClass):
@@ -146,7 +191,7 @@ class RecordMeta(type):
     __repr__ = __str__
 
     def __eq__(cls, other):
-        if not isinstance(other, RecordClass):
+        if not isinstance(other, RecordMeta):
             return False
         return (
             cls is other
