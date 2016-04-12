@@ -22,24 +22,8 @@ Example:
     baz = Second(1, 2, 3, second2=4)
 """
 import copy
+import copy_reg
 import itertools
-
-
-def _UnReduceRecord(name, bases, attribute_names, required_attribute_values):
-  """Re-construct a Record instance as serialized via RecordClass.__reduce__().
-
-  This enables pickling and unpickling of Record instances.  Required
-  attribute values are passed in directly here, because they are needed at
-  construction time of the Record.  Optional attributes' values are saved via
-  RecordClass.__getstate__() and restored via RecordClass.__setstate__() by
-  the pickle module.
-
-  Note that pickling and unpickling a Record results in a Record with a newly
-  created type.  This new type will compare equal to the type of the original
-  Record, but will not pass 'is' checks.  The new Record and the original will
-  also pass equality checks, but not 'is' checks (obviously).
-  """
-  return RecordMeta(name, bases, attribute_names)(*required_attribute_values)
 
 
 class RecordClass(object):
@@ -117,24 +101,6 @@ class RecordClass(object):
         for attr, value in state.iteritems():
           setattr(self, attr, value)
 
-    def __reduce__(self):
-        """Provide the ability to pickle Records.
-
-        See _UnReduceRecord for details of what these args are, but basically
-        pass all the information needed to reconstruct this Record.  Also see
-        Python docs on __reduce__() for the calling semantics of this method
-        and the format of the return value.
-        """
-        return (_UnReduceRecord, (
-          type(self).__name__, type(self).__bases__,
-          {
-            'required_attributes': type(self).required_attributes,
-            'optional_attributes': type(self).optional_attributes,
-          },
-          tuple(getattr(self, attr) for
-                attr in type(self).required_attributes)),
-          self.__getstate__())
-
 
 class HashableRecordClass(RecordClass):
     """Hashable version of RecordClass.
@@ -210,10 +176,45 @@ class RecordMeta(type):
             cls.optional_attributes.keys())
 
 
+def _UnReduceRecord(name, bases, attribute_names, required_attribute_values):
+    """Re-construct a Record instance as serialized via RecordClass.__reduce__().
+
+    This enables pickling and unpickling of Record instances.  Required
+    attribute values are passed in directly here, because they are needed at
+    construction time of the Record.  Optional attributes' values are saved via
+    RecordClass.__getstate__() and restored via RecordClass.__setstate__() by
+    the pickle module.
+
+    Note that pickling and unpickling a Record results in a Record with a newly
+    created type.  This new type will compare equal to the type of the original
+    Record, but will not pass 'is' checks.  The new Record and the original will
+    also pass equality checks, but not 'is' checks (obviously).
+    """
+    return RecordMeta(name, bases, attribute_names)(*required_attribute_values)
+
+
+def _ReduceRecord(obj):
+    """Provide the ability to pickle Records.
+
+    See _UnReduceRecord for details of what these args are, but basically
+    pass all the information needed to reconstruct this Record.  Also see
+    Python docs on __reduce__() for the calling semantics of this method
+    and the format of the return value.
+    """
+    cls = type(obj)
+    return (_UnReduceRecord, (
+        cls.__name__, (RecordClass,), {
+            'required_attributes': cls.required_attributes,
+            'optional_attributes': cls.optional_attributes},
+        tuple(getattr(obj, attr) for attr in cls.required_attributes)),
+        obj.__getstate__())
+
 def Record(cls_name, required_attributes=(), optional_attributes={}):
     attrs = {'required_attributes': tuple(required_attributes),
              'optional_attributes': dict(optional_attributes)}
-    return RecordMeta(cls_name, (RecordClass,), attrs)
+    cls = RecordMeta(cls_name, (RecordClass,), attrs)
+    copy_reg.pickle(cls, _ReduceRecord)
+    return cls
 
 
 def HashableRecord(cls_name, required_attributes=(), optional_attributes={}):

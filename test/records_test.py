@@ -41,7 +41,14 @@ class RecordsTest(unittest.TestCase):
         rec_obj = rec_cls('reqd_value')
         pickled_obj = pickle.loads(pickle.dumps(rec_obj))
         self.assertEqual(rec_obj, pickled_obj)
-        self.assertEqual(rec_cls, type(pickled_obj)) 
+        self.assertEqual(rec_cls, type(pickled_obj))
+
+    def testPickleRecordSubclass(self):
+        class Subclass(mutablerecords.Record('Rec', ['req'], {'opt': None})):
+            pass
+        obj = Subclass(True)
+        unpickled = pickle.loads(pickle.dumps(obj))
+        self.assertEqual(obj, unpickled)
 
 
 if __name__ == '__main__':
