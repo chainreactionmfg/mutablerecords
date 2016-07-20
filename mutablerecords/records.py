@@ -223,11 +223,20 @@ def HashableRecord(cls_name, required_attributes=(), optional_attributes={}):
     return RecordMeta(cls_name, (HashableRecordClass,), attrs)
 
 
-def CopyRecord(record):
-    """Copies a record and each of its fields, like a 1-level deepcopy."""
+def CopyRecord(record, **field_overrides):
+    """Copies a record and each of its fields, like a Record-only deepcopy.
+    
+    Args:
+      record: A Record instance to be copied.
+      **field_overrides: Fields and their values to override in the new copy.
+      
+    Returns: A copy of the given record with any fields overridden.
+    """
 
-    fields = {}
+    fields = field_overrides
     for field in record.__slots__:
+        if field in field_overrides:
+            continue
         value = getattr(record, field)
         if isinstance(value, RecordClass):
             # Recurse for records.
