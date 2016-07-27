@@ -5,30 +5,39 @@ import unittest
 
 import mutablerecords
 
+TestRecord = mutablerecords.Record(
+    'TestRecord', ['required'], {'optional': 'opt_value'})
+
+Name = mutablerecords.Record('Name', ['required'], {'name_opt': True})
+Simple = mutablerecords.Record('Simple', [], {'simple': True})
+Recursive = mutablerecords.Record(
+    'Recursive', [], {'subrec': Simple, 'lst': list})
+
+
+class Subclass(mutablerecords.Record('Rec', ['req'], {'opt': None})):
+    def ExtraMethod(self):
+        return True
+
 
 class RecordsTest(unittest.TestCase):
 
     def testRecordCreation(self):
-        cls = mutablerecords.Record('Name', ['required'], {'optional': True})
-        obj = cls('req')
+        obj = Name('req')
         self.assertEqual(obj.required, 'req')
-        self.assertTrue(obj.optional)
+        self.assertTrue(obj.name_opt)
 
-        obj = cls('req2', optional=5)
+        obj = Name('req2', name_opt=5)
         self.assertEqual(obj.required, 'req2')
-        self.assertEqual(obj.optional, 5)
+        self.assertEqual(obj.name_opt, 5)
 
     def testCopyRecord(self):
-        cls = mutablerecords.Record('Name', [], {'optional': True})
-        obj = cls()
+        obj = Name('name')
         new_obj = mutablerecords.CopyRecord(obj)
         self.assertIsNot(obj, new_obj)
 
-        rec_cls = mutablerecords.Record(
-            'Recursive', [], {'subrec': cls, 'lst': list})
-        self.assertIsInstance(rec_cls().subrec, cls)
-        self.assertEqual(rec_cls().lst, [])
-        rec_obj = rec_cls()
+        self.assertIsInstance(Recursive().subrec, Simple)
+        self.assertEqual(Recursive().lst, [])
+        rec_obj = Recursive()
         new_rec_obj = mutablerecords.CopyRecord(rec_obj)
         self.assertIsNot(rec_obj, new_rec_obj)
         self.assertIsNot(rec_obj.subrec, new_rec_obj.subrec)
@@ -36,19 +45,16 @@ class RecordsTest(unittest.TestCase):
         self.assertEqual(rec_obj.lst, [])
 
     def testPickleRecord(self):
-        rec_cls = mutablerecords.Record(
-            'TestRecord', ['required'], {'optional': 'opt_value'})
-        rec_obj = rec_cls('reqd_value')
+        rec_obj = Name('reqd_value')
         pickled_obj = pickle.loads(pickle.dumps(rec_obj))
         self.assertEqual(rec_obj, pickled_obj)
-        self.assertEqual(rec_cls, type(pickled_obj))
+        self.assertEqual(Name, type(pickled_obj))
 
     def testPickleRecordSubclass(self):
-        class Subclass(mutablerecords.Record('Rec', ['req'], {'opt': None})):
-            pass
         obj = Subclass(True)
         unpickled = pickle.loads(pickle.dumps(obj))
         self.assertEqual(obj, unpickled)
+        self.assertTrue(unpickled.ExtraMethod())
 
 
 if __name__ == '__main__':

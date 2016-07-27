@@ -22,8 +22,8 @@ Example:
     baz = Second(1, 2, 3, second2=4)
 """
 import copy
-import copy_reg
 import itertools
+import sys
 
 
 class RecordClass(object):
@@ -92,12 +92,11 @@ class RecordClass(object):
                              for attr in self.__slots__})
 
     def __getstate__(self):
-        """Get the current state of all optional attributes."""
-        return {attr: getattr(self, attr) for
-                attr in type(self).optional_attributes}
+        """Get the current state of all attributes."""
+        return {attr: getattr(self, attr) for attr in type(self).__slots__}
 
     def __setstate__(self, state):
-        """Set the state of optional attributes."""
+        """Set the state of attributes."""
         for attr, value in state.iteritems():
           setattr(self, attr, value)
 
@@ -176,44 +175,17 @@ class RecordMeta(type):
             cls.optional_attributes.keys())
 
 
-def _UnReduceRecord(name, bases, attribute_names, required_attribute_values):
-    """Re-construct a Record instance as serialized via RecordClass.__reduce__().
-
-    This enables pickling and unpickling of Record instances.  Required
-    attribute values are passed in directly here, because they are needed at
-    construction time of the Record.  Optional attributes' values are saved via
-    RecordClass.__getstate__() and restored via RecordClass.__setstate__() by
-    the pickle module.
-
-    Note that pickling and unpickling a Record results in a Record with a newly
-    created type.  This new type will compare equal to the type of the original
-    Record, but will not pass 'is' checks.  The new Record and the original will
-    also pass equality checks, but not 'is' checks (obviously).
-    """
-    return RecordMeta(name, bases, attribute_names)(*required_attribute_values)
-
-
-def _ReduceRecord(obj):
-    """Provide the ability to pickle Records.
-
-    See _UnReduceRecord for details of what these args are, but basically
-    pass all the information needed to reconstruct this Record.  Also see
-    Python docs on __reduce__() for the calling semantics of this method
-    and the format of the return value.
-    """
-    cls = type(obj)
-    return (_UnReduceRecord, (
-        cls.__name__, (RecordClass,), {
-            'required_attributes': cls.required_attributes,
-            'optional_attributes': cls.optional_attributes},
-        tuple(getattr(obj, attr) for attr in cls.required_attributes)),
-        obj.__getstate__())
-
 def Record(cls_name, required_attributes=(), optional_attributes={}):
     attrs = {'required_attributes': tuple(required_attributes),
              'optional_attributes': dict(optional_attributes)}
     cls = RecordMeta(cls_name, (RecordClass,), attrs)
-    copy_reg.pickle(cls, _ReduceRecord)
+
+    # Copied from collections.py, the bottom of namedtuple:
+    # For pickling to work, the __module__ variable needs to be set to the frame
+    # where the named tuple is created.  Bypass this step in enviroments where
+    # sys._getframe is not defined (Jython for example).
+    if hasattr(sys, '_getframe'):
+        cls.__module__ = sys._getframe(1).f_globals.get('__name__', '__main__')
     return cls
 
 
@@ -225,11 +197,11 @@ def HashableRecord(cls_name, required_attributes=(), optional_attributes={}):
 
 def CopyRecord(record, **field_overrides):
     """Copies a record and each of its fields, like a Record-only deepcopy.
-    
+
     Args:
       record: A Record instance to be copied.
       **field_overrides: Fields and their values to override in the new copy.
-      
+
     Returns: A copy of the given record with any fields overridden.
     """
 
