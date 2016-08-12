@@ -117,19 +117,19 @@ class HashableRecordClass(RecordClass):
 class RecordMeta(type):
 
     def __new__(cls, name, bases, attrs):
-        attrs['required_attributes'] = attrs.get('required_attributes', ())
+        required_attributes = []  # Combine the bases' req attrs first.
         attrs['optional_attributes'] = attrs.get('optional_attributes', {})
         for base in bases:
             if issubclass(base, RecordClass):
                 # Check for repeated attributes first.
-                repeats = (set(attrs['required_attributes']) &
+                repeats = (set(required_attributes) &
                            set(base.required_attributes))
                 assert not repeats, 'Required attributes clash: %s' % repeats
                 repeats = (set(attrs['optional_attributes']) &
                            set(base.optional_attributes))
                 assert not repeats, 'Optional attributes clash: %s' % repeats
 
-                attrs['required_attributes'] += base.required_attributes
+                required_attributes.extend(base.required_attributes)
                 attrs['optional_attributes'].update(base.optional_attributes)
 
                 # If this class defines any attributes in a superclass's
@@ -137,9 +137,7 @@ class RecordMeta(type):
                 # default with the given value.
                 provided = set(base.required_attributes) & set(attrs)
                 for attr in provided:
-                    attrs['required_attributes'] = tuple(
-                        att for att in attrs['required_attributes']
-                        if att != attr)
+                    required_attributes.remove(attr)
                     attrs['optional_attributes'][attr] = attrs.pop(attr)
                 # Allow the class to override optional attribute defaults
                 # as well.
@@ -147,6 +145,8 @@ class RecordMeta(type):
                 for attr in provided:
                     attrs['optional_attributes'][attr] = attrs.pop(attr)
 
+        attrs['required_attributes'] = tuple(
+            required_attributes + list(attrs.get('required_attributes', ())))
         attrs['__slots__'] = (tuple(attrs['required_attributes']) +
                               tuple(attrs['optional_attributes'].keys()))
         return super(RecordMeta, cls).__new__(cls, name, bases, attrs)
