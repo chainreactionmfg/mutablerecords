@@ -19,10 +19,10 @@ declaration, which you can even inline as your base class.
 
 ```python
 # This acts like a mutable namedtuple, taking the same arguments.
-Simple = records.Record('Simple', ['foo'])
+Simple = mutablerecords.Record('Simple', ['foo'])
 
 # Now let's use a default argument.
-SecondRecord = records.Record('SecondRecord', ['attr1', 'attr2'], attr3=0)
+SecondRecord = mutablerecords.Record('SecondRecord', ['attr1', 'attr2'], {'attr3': 0})
 foo = SecondRecord(1, 2, attr3=3)
 # str(foo) --> 'SecondRecord(attr1=1, attr2=2, attr3=3)'
 bar = SecondRecord(attr1=1, attr2=2, attr3=5)
@@ -37,7 +37,7 @@ baz = Third(1, 2, 3, third2=4)
 # Here, second1 is required, so it goes before attr3:
 # str(baz) --> 'Third(attr1=1, attr2=2, third1=3, attr3=0, third2=5)'
 
-class OptionalMaker(records.Record('Required', ['required'])):
+class OptionalMaker(mutablerecords.Record('Required', ['required'])):
     required = None
     required_attributes = ['other']
 
