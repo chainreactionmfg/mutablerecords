@@ -196,8 +196,10 @@ def HashableRecord(cls_name, required_attributes=(), optional_attributes={}):
 
 
 def CopyRecord(record, **field_overrides):
-    """Copies a record and each of its fields, like a Record-only deepcopy.
-
+    """Copies a record and its fields, recurses for any field that is a Record.
+    
+    For records that have nested mutable fields, use copy.deepcopy.
+    
     Args:
       record: A Record instance to be copied.
       **field_overrides: Fields and their values to override in the new copy.
