@@ -10,7 +10,7 @@ instances, like collections.defaultdict).
 
 Example:
 
-    FirstRecord = records.Record('FirstRecord', ['attr1', 'attr2'], attr3=0)
+    FirstRecord = records.Record('FirstRecord', ['attr1', 'attr2'], {'attr3': 0})
     foo = FirstRecord(1, 2, attr3=3)
     bar = FirstRecord(attr1=1, attr2=2, attr3=5)
 
