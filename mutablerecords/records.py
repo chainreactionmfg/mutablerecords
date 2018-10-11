@@ -79,6 +79,9 @@ class RecordClass(object):
             or type(self) == type(other)
             and self._isequal_fields(other, self.__slots__))
 
+    def __ne__(self, other):
+        return not self == other
+
     def _isequal_fields(self, other, fields):
         return all(getattr(self, attr) == getattr(other, attr)
                    for attr in fields)
@@ -162,6 +165,9 @@ class RecordMeta(type):
             cls is other
             or cls.required_attributes == other.required_attributes
             and cls.optional_attributes == other.optional_attributes)
+    
+    def __ne__(self, other):
+        return not self == other
 
     def __hash__(cls):
         return hash(
